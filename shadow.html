@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+			* { margin: 0; }
+			li { list-style: none; }
+			.item {
+				position: relative;
+				margin:50px auto 0;
+				width: 300px;
+				height: 200px;
+				overflow: hidden;
+				background-color: rgba(200,200,200,.6);
+				float: left;
+				margin-right: 10px;
+			}
+			.item:last-child { margin-right: 0; }
+			.info {
+				position: absolute;
+				left: -300px;
+				top: -200px;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(250, 84, 46, .8);
+				transition: all .15s ease-in-out;
+			}
+	</style>
+</head>
+<body>
+	<ul class="container" id="container">
+		<li class="item">sdfsdffsaf</li>
+		<li class="item">sdferewfs</li>
+		<li style="clear: both;"></li>
+	</ul>
+	<script src="queue.js"></script>
+	<script>
+
+		for (var i = 0; i < $C('item').length; i++) {
+
+			(function(i){
+
+				var index = i;
+
+					function tempelemMouseEvent() { }
+					inherit(tempelemMouseEvent, moveFollowMouse); 
+
+					var elemMouseEvent = new moveFollowMouse();
+
+				$C('item')[index].onmouseenter = function(event){
+
+					var _this = this;
+					var fromTo = {
+						left: 
+								{
+									left: '-300',
+									top: '0'
+								},
+						right:
+								{
+									left: '300',
+									top: '0'
+								},
+						top:
+								{
+									top: '-200',
+									left: '0'
+								},
+						bottom:
+								{
+									top: '200',
+									left: '0'
+								}
+					}
+
+					elemMouseEvent.init(_this);
+					elemMouseEvent.mouseEvent(event);
+					elemMouseEvent.mouseenter(fromTo);
+				}
+				$C('item')[index].onmouseleave = function(event) {
+					var _this = this;
+					var fromTo = {
+						left: 
+								{
+									topPos: '0',
+									leftPos: '-300'
+								},
+						right:
+								{
+									topPos: '0',
+									leftPos: '300'
+								},
+						top:
+								{
+									leftPos: '0',
+									topPos: '-200'
+								},
+						bottom:
+								{
+									leftPos: '0',
+									topPos: '200'
+								}
+					}
+
+					elemMouseEvent.mouseEvent(event);
+					elemMouseEvent.mouseleave(fromTo);
+				}
+			})(i)
+			
+		}
+		function moveFollowMouse() { }
+
+		moveFollowMouse.prototype.init = function(elem) {
+
+			this.elem = elem;
+			this.timer = null;
+			this.width = this.elem.offsetWidth;
+			this.height = elem.offsetHeight;
+			this.l = elem.getBoundingClientRect().left;
+			this.t = elem.getBoundingClientRect().top;
+		}
+
+		moveFollowMouse.prototype.mouseEvent = function(event) {
+
+			var eve = event || window.event;
+			var pageX = eve.pageX;
+			var pageY = eve.pageY;
+			var oLeft = pageX - this.l - this.width / 2;
+			var oTop = -(pageY - this.t - this.height / 2);
+			var halfW = this.width / 2;
+			var halfH = this.height / 2
+
+			this.RTPoint = Math.atan2(halfH, halfW);
+			this.RBPoint = Math.atan2(-halfH, halfW);
+			this.LTPoint = Math.atan2(halfH, -halfW);
+			this.LBPoint = Math.atan2(-halfH, -halfW);
+
+			this.movePoint = Math.atan2(oTop, oLeft);
+		}
+
+		moveFollowMouse.prototype.mouseenter = function(fromTo) {
+
+			if(this.movePoint > this.LBPoint && this.movePoint < this.RBPoint) { //bottom
+				this.moveToTar({
+					oriTopPos: fromTo.bottom.top,
+					oriLeftPos: fromTo.bottom.left
+				});
+			}
+			if(this.movePoint > this.RBPoint && this.movePoint < this.RTPoint) { //right
+				this.moveToTar({
+					oriTopPos: fromTo.right.top,
+					oriLeftPos: fromTo.right.left
+				});
+			}
+			if(this.movePoint > this.LTPoint || this.movePoint < this.LBPoint) { //left
+				this.moveToTar({
+					oriTopPos: fromTo.left.top,
+					oriLeftPos: fromTo.left.left
+				});
+			}
+			if(this.movePoint > this.RTPoint && this.movePoint < this.LTPoint) { //top
+				this.moveToTar({
+					oriTopPos: fromTo.top.top,
+					oriLeftPos: fromTo.top.left
+				});
+			}
+		}
+
+		moveFollowMouse.prototype.mouseleave = function(fromTo) {
+
+			if(this.movePoint > this.LBPoint && this.movePoint < this.RBPoint) { //bottom
+				this.removeDiv(fromTo.bottom);
+			}
+			if(this.movePoint > this.RBPoint && this.movePoint < this.RTPoint) { //right
+				this.removeDiv(fromTo.right);
+			}
+			if(this.movePoint > this.LTPoint || this.movePoint < this.LBPoint) { //left
+				this.removeDiv(fromTo.left);
+			}
+			if(this.movePoint > this.RTPoint && this.movePoint < this.LTPoint) { //top
+				this.removeDiv(fromTo.top);
+			}
+		}
+
+		moveFollowMouse.prototype.createDiv = function() {
+
+			var info = document.createElement('div');
+			var timer = null;
+			info.className = 'info';
+
+			return info;
+		}
+
+		moveFollowMouse.prototype.moveToTar = function(original) {
+
+				if(!this.child) {
+					this.child = this.createDiv();
+				}
+
+				clearInterval(this.timer);
+				clearInterval(this.tempTimer);
+
+				var _this = this;
+				this.child.style.top = original.oriTopPos + 'px';
+				this.child.style.left = original.oriLeftPos + 'px';
+
+				this.elem.appendChild(this.child);
+
+				//可优化，若没有简短时差，怎不会出现入场动画
+				this.tempTimer = setTimeout(function(){
+					_this.child.style.top = '0px';
+					_this.child.style.left = '0px';
+				}, 1)
+		} 
+
+		moveFollowMouse.prototype.removeDiv = function(data) {
+
+			var _this = this;
+
+			if(this.child) {
+
+				this.child.style.top = data.topPos + 'px';
+				this.child.style.left = data.leftPos + 'px';
+
+				//出场动画会抛出找不到子节点错误
+				this.timer = setTimeout(function(){
+					try {
+						_this.elem.removeChild(_this.child);
+					} catch(e) {
+						console.log(e);
+					}
+				}, 150)
+			}
+		}
+
+		function $(id) {
+			return document.getElementById(id);
+		}
+
+		function $C(className) {
+			return document.querySelectorAll('.' + className);
+		}
+
+		function inherit(newObj,oldObj) {
+			function F(){ }
+			F.prototype = oldObj.prototype;
+			newObj.prototype = new F();
+		}
+	</script>
+</body>
+</html>
