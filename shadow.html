@@ -34,7 +34,6 @@
 		<li class="item">sdferewfs</li>
 		<li style="clear: both;"></li>
 	</ul>
-	<script src="queue.js"></script>
 	<script>
 
 		for (var i = 0; i < $C('item').length; i++) {
@@ -227,9 +226,7 @@
 				this.timer = setTimeout(function(){
 					try {
 						_this.elem.removeChild(_this.child);
-					} catch(e) {
-						console.log(e);
-					}
+					} catch(e) {}
 				}, 150)
 			}
 		}
